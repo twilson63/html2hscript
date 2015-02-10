@@ -1,0 +1,25 @@
+{
+  "name": "html2hscript",
+  "version": "1.0.0",
+  "description": "parse html into hyperscript",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "htmlparser2": "^3.8.2"
+  },
+  "devDependencies": {
+    "tap": "^0.5.0"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "keywords": [
+    "html",
+    "parser",
+    "hyperscript"
+  ],
+  "author": "https://www.npmjs.com/~unframework",
+  "license": "MIT"
+}
