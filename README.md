@@ -2,6 +2,8 @@
 
 Parse html to hyperscript library.
 
+[![Build Status](https://travis-ci.org/twilson63/html2hscript.svg?branch=master)](https://travis-ci.org/twilson63/html2hscript)
+
 ## Usage
 
 ``` js
