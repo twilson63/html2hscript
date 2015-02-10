@@ -21,5 +21,13 @@
     "hyperscript"
   ],
   "author": "https://www.npmjs.com/~unframework",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/twilson63/html2hscript.git"
+  },
+  "bugs": {
+    "url": "https://github.com/twilson63/html2hscript/issues"
+  },
+  "homepage": "https://github.com/twilson63/html2hscript"
 }
