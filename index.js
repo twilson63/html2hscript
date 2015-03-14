@@ -93,7 +93,7 @@ module.exports = function(html, cb) {
 
             var item = 'h(' + JSON.stringify(element[0] + idSuffix + classSuffix) + (
                 attrPairs.length
-                    ? ", { " + attrPairs.join(",\n" + indent + '    ') + "}"
+                    ? ", { " + attrPairs.join(",\n" + indent + '    ') + " }"
                     : ''
             ) + (
                 elementContent.length
