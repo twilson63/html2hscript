@@ -47,7 +47,8 @@ module.exports = function(html, cb) {
             elementStack.unshift([ name, attribs ]);
         },
         ontext: function (text) {
-            var lines = text.split("\n");
+            currentItemList.add(JSON.stringify(text));
+            /*var lines = text.split("\n");
 
             var isFirst = true;
 
@@ -69,7 +70,7 @@ module.exports = function(html, cb) {
                 }
 
                 isFirst = false;
-            });
+            });*/
         },
         onclosetag: function (tagname) {
             var element = elementStack.shift();
