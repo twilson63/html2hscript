@@ -1,5 +1,6 @@
 // code pulled from https://www.npmjs.com/package/html2hyperscript
 var Parser = require('htmlparser2').Parser;
+var camel = require('to-camel-case');
 
 var elementStack = [];
 
@@ -89,11 +90,38 @@ module.exports = function(html, cb) {
             var classSuffix = (classNames !== undefined ? classNames : '').split(/\s+/g).filter(function (v) { return v.length > 0; }).map(function (cls) { return '.' + cls; }).join('');
             delete attribs['class'];
 
+            var dataset = {};
+            var datasetKey;
+            Object.keys(attribs).forEach(function (k) {
+                if (k.slice(0, 5) === 'data-') {
+                    datasetKey = camel(k.slice(5));
+                    dataset[datasetKey] = attribs[k];
+                    delete attribs[k];
+                }
+            });
+
             var attrPairs = Object.keys(attribs).map(function (k) { return JSON.stringify(k) + ': ' + JSON.stringify(attribs[k]) });
+            var datasetPairs = Object.keys(dataset).map(function (k) { return JSON.stringify(k) + ': ' + JSON.stringify(dataset[k]) });
 
             var item = 'h(' + JSON.stringify(element[0] + idSuffix + classSuffix) + (
+                attrPairs.length || datasetPairs.length
+                    ? ", { "
+                    : ''
+            ) + (
                 attrPairs.length
-                    ? ", { " + attrPairs.join(",\n" + indent + '    ') + "}"
+                    ? attrPairs.join(",\n" + indent + '    ')
+                    : ''
+            ) + (
+                datasetPairs.length && attrPairs.length
+                    ? ",\n" + indent + '    '
+                    : ''
+            ) + (
+                datasetPairs.length
+                    ? "\"dataset\": { " + datasetPairs.join(",\n" + indent + '    ') + "}"
+                    : ''
+            ) + (
+                attrPairs.length || datasetPairs.length
+                    ? "}"
                     : ''
             ) + (
                 elementContent.length
