@@ -28,3 +28,10 @@ test('should handle correctly pre', function(t) {
     t.end()
   })
 })
+
+test('should output style attribute as an object', function(t) {
+  parser('<h1 style="color: red; font-size: 12px">Hello World</h1>', function(err, hscript) {
+    t.equals(hscript, 'h("h1", { "style": {"color":"red","font-size":"12px"} }, [ "Hello World" ])', 'success')
+    t.end()
+  })
+})

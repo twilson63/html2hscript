@@ -89,6 +89,17 @@ module.exports = function(html, cb) {
             var classNames = attribs['class'];
             var classSuffix = (classNames !== undefined ? classNames : '').split(/\s+/g).filter(function (v) { return v.length > 0; }).map(function (cls) { return '.' + cls; }).join('');
             delete attribs['class'];
+            // Convert inline CSS style attribute to an object
+            if(attribs['style']){
+                var rules = attribs["style"].split(";");
+                attribs["style"] = {};
+                rules.forEach(function(rule){
+                    var split = rule.split(":");
+                    if(split.length == 2){
+                        attribs["style"][split[0].trim()] = split[1].trim();
+                    }
+                });
+            }            
 
             var attrPairs = Object.keys(attribs).map(function (k) { return JSON.stringify(k) + ': ' + JSON.stringify(attribs[k]) });
 
