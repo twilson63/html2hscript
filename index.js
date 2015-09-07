@@ -1,5 +1,7 @@
 // code pulled from https://www.npmjs.com/package/html2hyperscript
 var Parser = require('htmlparser2').Parser;
+var camel = require('to-camel-case');
+var isEmpty = require('is-empty');
 
 var elementStack = [];
 
@@ -83,6 +85,7 @@ module.exports = function(html, cb) {
             var attribs = element[1];
 
             var id = attribs['id'];
+
             var idSuffix = id !== undefined ? '#' + id : '';
             delete attribs['id'];
 
@@ -99,15 +102,55 @@ module.exports = function(html, cb) {
                         attribs["style"][split[0].trim()] = split[1].trim();
                     }
                 });
-            }            
+            }           
+
+            var style = attribs['style']
+            delete attribs['style']
+
+            var dataset = {};
+            var datasetKey;
+            Object.keys(attribs).forEach(function (k) {
+                if (k.slice(0, 5) === 'data-') {
+                    datasetKey = camel(k.slice(5));
+                    dataset[datasetKey] = attribs[k];
+                    delete attribs[k];
+                }
+            });
 
             var attrPairs = Object.keys(attribs).map(function (k) { return JSON.stringify(k) + ': ' + JSON.stringify(attribs[k]) });
+            var datasetPairs = Object.keys(dataset).map(function (k) { return JSON.stringify(k) + ': ' + JSON.stringify(dataset[k]) });
+
+            var objects = {}
+            if (!isEmpty(style)) objects.style = style
+            if (!isEmpty(attribs)) objects.attributes = attribs
+            if (!isEmpty(dataset)) objects.dataset = dataset
+            var objectStr = !isEmpty(objects) ? JSON.stringify(objects) : ""
 
             var item = 'h(' + JSON.stringify(element[0] + idSuffix + classSuffix) + (
-                attrPairs.length
-                    ? ", { " + attrPairs.join(",\n" + indent + '    ') + " }"
-                    : ''
-            ) + (
+              (objectStr !== "") ? ", " + objectStr : ""
+            )
+            //     attrPairs.length || datasetPairs.length
+            //         ? ", { \"attributes\": { "
+            //         : ''
+            // ) + (
+            //     attrPairs.length
+            //         ? attrPairs.join(",\n" + indent + '    ')
+            //         : ''
+            // ) + (
+            //     datasetPairs.length && attrPairs.length
+            //         ? ",\n" + indent + '    '
+            //         : ''
+            // ) + (
+            //     datasetPairs.length
+            //         ? "\"dataset\": { " + datasetPairs.join(",\n" + indent + '    ') + "}"
+            //         : ''
+            // ) + (
+            //     attrPairs.length || datasetPairs.length
+            //         ? "}}"
+            //         : ''
+            // ) 
+
+            + (
                 elementContent.length
                     ? ', [' + (elementContent[0] === "\n" ? '' : ' ') + elementContent + (elementContent.match(/\s$/) ? '' : ' ') + ']'
                     : ''
