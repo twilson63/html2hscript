@@ -2,6 +2,9 @@
 var Parser = require('htmlparser2').Parser;
 var camel = require('to-camel-case');
 var isEmpty = require('is-empty');
+var thisIsSVGTag = require('./lib/svg-namespaces').thisIsSVGTag,
+    getSVGNamespace = require('./lib/svg-namespaces').getSVGNamespace,
+    getSVGAttributeNamespace = require('./lib/svg-namespaces').getSVGAttributeNamespace;
 
 var elementStack = [];
 
@@ -52,27 +55,27 @@ module.exports = function(html, cb) {
             currentItemList.add(JSON.stringify(text));
             /*var lines = text.split("\n");
 
-            var isFirst = true;
+             var isFirst = true;
 
-            lines.forEach(function (line) {
-                var lineMatch = /^(\s*)(.*?)(\s*)$/.exec(line);
+             lines.forEach(function (line) {
+             var lineMatch = /^(\s*)(.*?)(\s*)$/.exec(line);
 
-                var preSpace = lineMatch[1],
-                    mainText = lineMatch[2],
-                    postSpace = lineMatch[3];
+             var preSpace = lineMatch[1],
+             mainText = lineMatch[2],
+             postSpace = lineMatch[3];
 
-                if (!isFirst) {
-                    currentItemList.addSpace("\n");
-                }
+             if (!isFirst) {
+             currentItemList.addSpace("\n");
+             }
 
-                currentItemList.addSpace(preSpace);
+             currentItemList.addSpace(preSpace);
 
-                if (mainText.length > 0) {
-                    currentItemList.add(JSON.stringify(mainText));
-                }
+             if (mainText.length > 0) {
+             currentItemList.add(JSON.stringify(mainText));
+             }
 
-                isFirst = false;
-            });*/
+             isFirst = false;
+             });*/
         },
         onclosetag: function (tagname) {
             var element = elementStack.shift();
@@ -102,7 +105,7 @@ module.exports = function(html, cb) {
                         attribs["style"][split[0].trim()] = split[1].trim();
                     }
                 });
-            }           
+            }
 
             var style = attribs['style']
             delete attribs['style']
@@ -117,44 +120,72 @@ module.exports = function(html, cb) {
                 }
             });
 
-            var attrPairs = Object.keys(attribs).map(function (k) { return JSON.stringify(k) + ': ' + JSON.stringify(attribs[k]) });
-            var datasetPairs = Object.keys(dataset).map(function (k) { return JSON.stringify(k) + ': ' + JSON.stringify(dataset[k]) });
+            var attrPairs = Object.keys( attribs ).map( function ( k ) {
+                return JSON.stringify( k ) + ': ' + JSON.stringify( attribs[ k ] )
+            } );
+            var datasetPairs = Object.keys( dataset ).map( function ( k ) {
+                return JSON.stringify( k ) + ': ' + JSON.stringify( dataset[ k ] )
+            } );
 
             var objects = {}
-            if (!isEmpty(style)) objects.style = style
-            if (!isEmpty(attribs)) objects.attributes = attribs
-            if (!isEmpty(dataset)) objects.dataset = dataset
+            if ( !isEmpty( style ) ) objects.style = style
+            if ( !isEmpty( attribs ) ) objects.attributes = attribs
+            if ( !isEmpty( dataset ) ) objects.dataset = dataset
+            if ( thisIsSVGTag( element[ 0 ] ) ) {
+                objects.namespace = getSVGNamespace();
+
+                Object.keys(attribs).forEach(function (k) {
+                    var namespace = getSVGAttributeNamespace(k);
+
+                    if (namespace === void 0) { // not a svg attribute
+                        return;
+                    }
+
+                    var value = objects.attributes[ k ];
+
+                    if (typeof value !== 'string' &&
+                        typeof value !== 'number' &&
+                        typeof value !== 'boolean'
+                    ) {
+                        return;
+                    }
+
+                    if (namespace !== null) { // namespaced attribute
+                        objects[ k ] = 'SVGAttributeHook(\'' + namespace + '\',\'' + value + '\')';
+                    }
+                });
+            }
             var objectStr = !isEmpty(objects) ? JSON.stringify(objects) : ""
 
             var item = 'h(' + JSON.stringify(element[0] + idSuffix + classSuffix) + (
-              (objectStr !== "") ? ", " + objectStr : ""
-            )
-            //     attrPairs.length || datasetPairs.length
-            //         ? ", { \"attributes\": { "
-            //         : ''
-            // ) + (
-            //     attrPairs.length
-            //         ? attrPairs.join(",\n" + indent + '    ')
-            //         : ''
-            // ) + (
-            //     datasetPairs.length && attrPairs.length
-            //         ? ",\n" + indent + '    '
-            //         : ''
-            // ) + (
-            //     datasetPairs.length
-            //         ? "\"dataset\": { " + datasetPairs.join(",\n" + indent + '    ') + "}"
-            //         : ''
-            // ) + (
-            //     attrPairs.length || datasetPairs.length
-            //         ? "}}"
-            //         : ''
-            // ) 
+                    (objectStr !== "") ? ", " + objectStr : ""
+                )
+                    //     attrPairs.length || datasetPairs.length
+                    //         ? ", { \"attributes\": { "
+                    //         : ''
+                    // ) + (
+                    //     attrPairs.length
+                    //         ? attrPairs.join(",\n" + indent + '    ')
+                    //         : ''
+                    // ) + (
+                    //     datasetPairs.length && attrPairs.length
+                    //         ? ",\n" + indent + '    '
+                    //         : ''
+                    // ) + (
+                    //     datasetPairs.length
+                    //         ? "\"dataset\": { " + datasetPairs.join(",\n" + indent + '    ') + "}"
+                    //         : ''
+                    // ) + (
+                    //     attrPairs.length || datasetPairs.length
+                    //         ? "}}"
+                    //         : ''
+                    // )
 
-            + (
-                elementContent.length
-                    ? ', [' + (elementContent[0] === "\n" ? '' : ' ') + elementContent + (elementContent.match(/\s$/) ? '' : ' ') + ']'
-                    : ''
-            ) + ')';
+                + (
+                    elementContent.length
+                        ? ', [' + (elementContent[0] === "\n" ? '' : ' ') + elementContent + (elementContent.match(/\s$/) ? '' : ' ') + ']'
+                        : ''
+                ) + ')';
 
             currentItemList.add(item);
         },
@@ -162,10 +193,10 @@ module.exports = function(html, cb) {
             currentItemList.add('/*' + text + '*/', false); // @todo comment-safety
         },
         onend: function () {
-          cb(null, currentItemList.content);
+            cb(null, currentItemList.content);
         }
     }, {decodeEntities: true});
 
-  parser.write(html);
-  parser.end();
+    parser.write(html);
+    parser.end();
 }
