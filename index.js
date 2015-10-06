@@ -128,6 +128,10 @@ module.exports = function(html, cb) {
             } );
 
             var objects = {}
+            if (attribs.value) {
+                objects.value = attribs.value;
+                delete attribs.value;
+            }
             if ( !isEmpty( style ) ) objects.style = style
             if ( !isEmpty( attribs ) ) objects.attributes = attribs
             if ( !isEmpty( dataset ) ) objects.dataset = dataset
