@@ -93,8 +93,17 @@ module.exports = function(html, cb) {
             delete attribs['id'];
 
             var classNames = attribs['class'];
-            var classSuffix = (classNames !== undefined ? classNames : '').split(/\s+/g).filter(function (v) { return v.length > 0; }).map(function (cls) { return '.' + cls; }).join('');
-            delete attribs['class'];
+            var classSuffix;
+            if ( !thisIsSVGTag( element[ 0 ] ) ) {
+                classSuffix = (classNames !== undefined ? classNames : '').split(/\s+/g).filter(function(v) {
+                    return v.length > 0;
+                }).map(function(cls) {
+                    return '.' + cls;
+                }).join('');
+                delete attribs['class'];
+            } else {
+                classSuffix = '';
+            }
             // Convert inline CSS style attribute to an object
             if(attribs['style']){
                 var rules = attribs["style"].split(";");
@@ -199,7 +208,7 @@ module.exports = function(html, cb) {
         onend: function () {
             cb(null, currentItemList.content);
         }
-    }, {decodeEntities: true});
+    }, {decodeEntities: true, xmlMode: true});
 
     parser.write(html);
     parser.end();
