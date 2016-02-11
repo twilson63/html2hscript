@@ -1,6 +1,6 @@
 {
   "name": "html2hscript",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "parse html into hyperscript",
   "main": "index.js",
   "directories": {
