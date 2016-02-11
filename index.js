@@ -1,6 +1,7 @@
 // code pulled from https://www.npmjs.com/package/html2hyperscript
 var Parser = require('htmlparser2').Parser;
 var camel = require('to-camel-case');
+var ent = require('ent');
 var isEmpty = require('is-empty');
 var thisIsSVGTag = require('./lib/svg-namespaces').thisIsSVGTag,
     getSVGNamespace = require('./lib/svg-namespaces').getSVGNamespace,
@@ -52,7 +53,7 @@ module.exports = function(html, cb) {
             elementStack.unshift([ name, attribs ]);
         },
         ontext: function (text) {
-            currentItemList.add(JSON.stringify(text));
+            currentItemList.add(JSON.stringify(ent.decode(text)));
             /*var lines = text.split("\n");
 
              var isFirst = true;
